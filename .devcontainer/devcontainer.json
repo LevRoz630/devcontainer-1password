@@ -11,13 +11,11 @@
   },
   "mounts": [
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
-    "source=${localEnv:HOME}/.1password/agent.sock,target=/home/devuser/.1password/agent.sock,type=bind",
     "source=${localEnv:HOME}/.gitconfig,target=/home/devuser/.gitconfig,type=bind,readonly",
-    "source=${localEnv:HOME}/.config/op,target=/home/devuser/.config/op,type=bind,readonly",
     "source=${localEnv:HOME}/.claude,target=/home/devuser/.claude,type=bind,consistency=cached"
   ],
   "containerEnv": {
-    "SSH_AUTH_SOCK": "/home/devuser/.1password/agent.sock"
+    "OP_SERVICE_ACCOUNT_TOKEN": "${localEnv:OP_SERVICE_ACCOUNT_TOKEN}"
   },
   "remoteUser": "devuser",
   "features": {},
@@ -30,5 +28,6 @@
       ]
     }
   },
-  "postCreateCommand": "echo 'Ultimate Dev Container Ready!' && gh --version && claude --version && docker --version && node --version && python --version && op --version"
+  "postCreateCommand": "echo 'Ultimate Dev Container Ready!' && gh --version && claude --version && docker --version && node --version && python --version && op --version",
+  "postStartCommand": ".devcontainer/setup-ssh.sh"
 }

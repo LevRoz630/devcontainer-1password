@@ -16,20 +16,14 @@ services:
       # Mount Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
 
-      # Mount 1Password SSH agent socket
-      - ${HOME}/.1password/agent.sock:/home/devuser/.1password/agent.sock
-
       # Git config (small, non-sensitive)
       - ${HOME}/.gitconfig:/home/devuser/.gitconfig:ro
-
-      # 1Password env reference files for cloud CLI credentials
-      - ${HOME}/.config/op:/home/devuser/.config/op:ro
 
       # Claude Code config and credentials
       - ${HOME}/.claude:/home/devuser/.claude:cached
 
-    environment:
-      - SSH_AUTH_SOCK=/home/devuser/.1password/agent.sock
+    env_file:
+      - ../.env
 
     command: sleep infinity
     network_mode: host
