@@ -1,0 +1,12 @@
+# Never commit actual credentials
+.env
+*.key
+*.pem
+credentials
+secrets/
+
+# Dev container build artifacts
+.devcontainer/.build
+
+# User-specific Claude Code settings
+.claude/settings.local.json
