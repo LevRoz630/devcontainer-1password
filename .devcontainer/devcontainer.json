@@ -29,5 +29,5 @@
     }
   },
   "postCreateCommand": "echo 'Ultimate Dev Container Ready!' && gh --version && claude --version && docker --version && node --version && python --version && op --version",
-  "postStartCommand": ".devcontainer/setup-ssh.sh"
+  "postStartCommand": "[ -f .env ] && source .env; .devcontainer/setup-ssh.sh"
 }
