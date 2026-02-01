@@ -33,7 +33,7 @@ else
 
     # Source .env if token not set
     if [ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]; then
-        for f in "/workspaces/ultimate-devcontainer/.env" "$HOME/.env" "./.env"; do
+        for f in "/workspaces/devcontainer-1password/.env" "$HOME/.env" "./.env"; do
             [ -f "$f" ] && source "$f" 2>/dev/null && break
         done
     fi

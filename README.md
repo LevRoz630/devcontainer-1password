@@ -83,7 +83,7 @@ Create a vault called `DevContainer` with:
 ### 3. Open in VS Code
 
 ```bash
-code /path/to/ultimate-devcontainer
+code /path/to/devcontainer-1password
 ```
 
 Then: `Cmd+Shift+P` → "Dev Containers: Reopen in Container"
