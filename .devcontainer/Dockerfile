@@ -48,9 +48,6 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && apt-get install -y gh \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Claude Code CLI (native installer)
-RUN curl -fsSL https://claude.ai/install.sh | sh
-
 # Install AWS CLI
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
     && unzip awscliv2.zip \
@@ -93,8 +90,22 @@ USER $USERNAME
 WORKDIR /home/$USERNAME
 
 # Set up directories for 1Password agent, credentials, and Claude
-RUN mkdir -p ~/.ssh ~/.1password ~/.aws ~/.config/gcloud ~/.azure ~/.config/gh ~/.docker ~/.npm ~/.config/op ~/.claude \
+RUN mkdir -p ~/.ssh ~/.1password ~/.aws ~/.config/gcloud ~/.azure ~/.config/gh ~/.docker ~/.npm ~/.config/op ~/.claude ~/.local/bin \
     && printf 'Host *\n    IdentityAgent ~/.1password/agent.sock\n' > ~/.ssh/config \
-    && chmod 600 ~/.ssh/config
+    && chmod 600 ~/.ssh/config \
+    && chmod 700 ~/.ssh ~/.config/op
+
+# Install Claude Code CLI as devuser (installs to ~/.local/bin)
+RUN curl -fsSL https://claude.ai/install.sh | bash
+
+# Copy setup scripts into the image
+COPY --chown=devuser:devuser .devcontainer/setup-ssh.sh /home/devuser/.local/bin/setup-ssh
+COPY --chown=devuser:devuser .devcontainer/clone-repos.sh /home/devuser/.local/bin/clone-repos
+RUN chmod +x /home/devuser/.local/bin/setup-ssh /home/devuser/.local/bin/clone-repos
+
+# Add ~/.local/bin to PATH and auto-run SSH setup on interactive shell login
+RUN echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc \
+    && echo '# Auto-load SSH credentials on login if 1Password token is set' >> ~/.bashrc \
+    && echo 'if [ -n "$OP_SERVICE_ACCOUNT_TOKEN" ] && [ -z "$SSH_AUTH_SOCK" ]; then setup-ssh 2>/dev/null; fi' >> ~/.bashrc
 
 CMD ["/bin/bash"]

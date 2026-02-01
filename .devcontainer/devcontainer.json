@@ -9,10 +9,12 @@
       "USER_GID": "1000"
     }
   },
+    "initializeCommand": "mkdir -p ~/.config/op && chmod 700 ~/.config/op",
   "mounts": [
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
     "source=${localEnv:HOME}/.gitconfig,target=/home/devuser/.gitconfig,type=bind,readonly",
-    "source=${localEnv:HOME}/.claude,target=/home/devuser/.claude,type=bind,consistency=cached"
+    "source=${localEnv:HOME}/.claude,target=/home/devuser/.claude,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.config/op,target=/home/devuser/.config/op,type=bind"
   ],
   "containerEnv": {
     "OP_SERVICE_ACCOUNT_TOKEN": "${localEnv:OP_SERVICE_ACCOUNT_TOKEN}"
@@ -29,5 +31,5 @@
     }
   },
   "postCreateCommand": "echo 'Ultimate Dev Container Ready!' && gh --version && claude --version && docker --version && node --version && python --version && op --version",
-  "postStartCommand": "[ -f .env ] && source .env; .devcontainer/setup-ssh.sh"
+  "postStartCommand": "setup-ssh || true"
 }

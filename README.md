@@ -1,103 +1,191 @@
 # Ultimate Dev Container
 
-A portable development container that uses 1Password Service Accounts for credential management. Works on any machine or VM without requiring the 1Password desktop app.
+A fully-featured development container with secure 1Password credential management. Works with VS Code Dev Containers or standalone Docker.
 
-## Features
+## Technologies
 
-- **Portable** - Works on VMs, remote servers, anywhere Docker runs
-- **Secure** - Credentials fetched from 1Password on container start, never stored on disk
-- **Zero config** - SSH keys, GitHub CLI, and tools auto-configured via service account
+### Languages & Runtimes
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Node.js | 20.x | JavaScript/TypeScript runtime |
+| npm | 10.x | Node package manager |
+| Python | 3.11 | Python runtime |
+| pip | Latest | Python package manager |
 
-## Included Tools
-
+### Cloud CLIs
 | Tool | Purpose |
 |------|---------|
-| Node.js 20.x | JavaScript runtime |
-| Python 3.11 | Python runtime |
-| Docker CLI | Container management |
-| GitHub CLI | GitHub operations |
+| AWS CLI | Amazon Web Services |
+| Google Cloud SDK | Google Cloud Platform |
+| Azure CLI | Microsoft Azure |
+
+### Development Tools
+| Tool | Purpose |
+|------|---------|
+| Docker CLI | Container management (Docker-in-Docker) |
+| Docker Compose | Multi-container orchestration |
+| GitHub CLI (`gh`) | GitHub operations, PR management |
+| Git | Version control |
 | Claude Code | AI-assisted development |
-| 1Password CLI | Credential management |
+
+### Security & Credentials
+| Tool | Purpose |
+|------|---------|
+| 1Password CLI (`op`) | Secure credential management |
+| ssh-agent | SSH key management |
+
+## Authentication Options
+
+### Option 1: Interactive (Recommended for personal use)
+
+Run `setup-ssh` in the container terminal. First time requires:
+- 1Password sign-in address (e.g., `my.1password.eu`)
+- Email
+- Secret key (starts with `A3-`)
+- Master password
+
+After first setup, only master password needed (account config persists via mount).
+
+### Option 2: Service Account (Recommended for automation)
+
+Set on your host machine:
+```bash
+export OP_SERVICE_ACCOUNT_TOKEN="ops_your_token_here"
+```
+
+Credentials load automatically on container start.
 
 ## Quick Start
 
-### 1. Create 1Password Service Account
+### 1. Prerequisites
 
-1. Go to [1Password.com](https://my.1password.com) > **Developer Tools** > **Service Accounts**
-2. Create a new service account
-3. Grant access to a vault (e.g., "DevContainer") containing:
-   - `Github SSH Key` - SSH key with `private_key` field
-   - `GitHub Token` - Personal access token with `credential` field
+- Docker Desktop or Docker Engine
+- VS Code with Dev Containers extension (optional)
+- 1Password account with a vault containing:
+  - `Github SSH Key` - SSH key item with private key
+  - `GitHub Token` - API token item
 
-### 2. Configure Environment
+### 2. 1Password Vault Setup
 
-Create `.env` in the project root (gitignored):
-```
-OP_SERVICE_ACCOUNT_TOKEN=ops_your_token_here
-```
+Create a vault called `DevContainer` with:
 
-### 3. Build and Run
+**SSH Key:**
+- Item name: `Github SSH Key`
+- Type: SSH Key
+- Add your private key
+
+**GitHub Token:**
+- Item name: `GitHub Token`
+- Type: API Credential
+- Field name: `token`
+- Value: Your GitHub PAT (needs `repo` scope)
+
+### 3. Open in VS Code
 
 ```bash
-# Build
-docker compose -f .devcontainer/docker-compose.yml build
-
-# Run
-docker compose -f .devcontainer/docker-compose.yml up -d
-
-# Enter container
-docker compose -f .devcontainer/docker-compose.yml exec devcontainer bash
+code /path/to/ultimate-devcontainer
 ```
 
-Credentials are automatically loaded on container start via `setup-ssh.sh`.
+Then: `Cmd+Shift+P` → "Dev Containers: Reopen in Container"
 
-### 4. Clone Repos (Optional)
+### 4. Set Up Credentials
 
-Inside the container, run the interactive repo selector:
+In the container terminal:
 ```bash
-.devcontainer/clone-repos.sh
+setup-ssh
 ```
 
-This lists your GitHub repos by recent activity and lets you pick which to clone.
+Follow the prompts to sign in to 1Password.
 
-## VS Code Dev Containers
+### 5. Clone Repos (Optional)
 
-1. Open this folder in VS Code
-2. Press `F1` > "Dev Containers: Reopen in Container"
+```bash
+clone-repos
+```
+
+Interactive selector shows your GitHub repos sorted by recent activity.
 
 ## What's Mounted
 
-| Host | Container | Purpose |
-|------|-----------|---------|
-| `~/.gitconfig` | `~/.gitconfig` | Git identity (read-only) |
-| `~/.claude/` | `~/.claude/` | Claude Code config |
+| Host Path | Container Path | Purpose |
+|-----------|----------------|---------|
+| `~/.gitconfig` | `/home/devuser/.gitconfig` | Git identity (read-only) |
+| `~/.claude/` | `/home/devuser/.claude/` | Claude Code settings |
+| `~/.config/op/` | `/home/devuser/.config/op/` | 1Password account config (persists across rebuilds) |
 | `/var/run/docker.sock` | `/var/run/docker.sock` | Docker-in-Docker |
 
 ## Security
 
-- Service account token stored in `.env` (gitignored, never committed)
-- SSH keys fetched on-demand from 1Password, not persisted
-- Service account scoped to specific vault only
-- Credentials injected into ssh-agent/gh, not written to files
+| Aspect | Implementation |
+|--------|----------------|
+| Master password | Never stored, entered each session |
+| SSH keys | Fetched from 1Password, loaded into ssh-agent only |
+| GitHub token | Fetched from 1Password, passed to `gh auth` |
+| Account config | Stored on host `~/.config/op/`, contains no secrets |
+| Service account token | Optional, for fully automatic setup |
 
 ## File Structure
 
 ```
 .devcontainer/
-├── Dockerfile           # Container image
-├── docker-compose.yml   # Volume mounts, env config
-├── devcontainer.json    # VS Code integration
-├── setup-ssh.sh         # Loads credentials from 1Password
-└── clone-repos.sh       # Interactive repo cloning
+├── Dockerfile           # Container image definition
+├── devcontainer.json    # VS Code Dev Container config
+├── setup-ssh.sh         # 1Password auth & credential loading
+├── clone-repos.sh       # Interactive GitHub repo cloning
+└── tests/
+    ├── test-image.sh    # Container test suite
+    └── run-tests.sh     # Build & test runner
 ```
+
+## Testing
+
+Run tests without VS Code:
+```bash
+.devcontainer/tests/run-tests.sh --verbose
+```
+
+Run tests inside container:
+```bash
+.devcontainer/tests/test-image.sh
+```
+
+## Commands Reference
+
+| Command | Description |
+|---------|-------------|
+| `setup-ssh` | Authenticate with 1Password, load SSH key & GitHub token |
+| `setup-ssh --interactive` | Force interactive mode (skip service account) |
+| `clone-repos` | Interactive GitHub repo selector |
 
 ## Troubleshooting
 
+### "No 1Password account configured"
+Run `setup-ssh` and follow the prompts to add your account.
+
 ### "Permission denied" on git operations
-- Check `OP_SERVICE_ACCOUNT_TOKEN` is set in `.env`
-- Verify service account has vault access
-- Run `op read "op://DevContainer/Github SSH Key/private_key"` to test
+```bash
+# Check SSH key is loaded
+ssh-add -l
+
+# Re-run setup if needed
+setup-ssh
+```
 
 ### GitHub CLI not authenticated
-- Ensure `GitHub Token` item exists in your 1Password vault
-- Token needs `repo` scope
+```bash
+# Check auth status
+gh auth status
+
+# Re-run setup
+setup-ssh
+```
+
+### Container rebuild loses credentials
+This is expected. The 1Password account config persists, but you need to re-enter your master password after rebuild:
+```bash
+setup-ssh
+```
+
+## License
+
+MIT

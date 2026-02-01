@@ -1,14 +1,12 @@
 #!/bin/bash
 # Interactive repo cloning from GitHub
 
-set -e
-
-CLONE_DIR="${1:-/workspace/projects}"
+CLONE_DIR="${1:-/workspaces/projects}"
 mkdir -p "$CLONE_DIR"
 
 # Check gh auth
 if ! gh auth status &>/dev/null; then
-    echo "Error: GitHub CLI not authenticated. Run setup-ssh.sh first."
+    echo "Error: GitHub CLI not authenticated. Run setup-ssh first."
     exit 1
 fi
 
@@ -29,13 +27,20 @@ declare -a repo_array
 while IFS= read -r repo; do
     repo_array+=("$repo")
     echo "  $i) $repo"
-    ((i++))
+    i=$((i + 1))
 done <<< "$repos"
 
 echo ""
 echo "Enter numbers to clone (e.g., 1,3,5 or 1-3 or 'all'):"
 echo "Press Enter to skip."
-read -r selection
+
+# Handle non-interactive terminals
+if [ -t 0 ]; then
+    read -r selection
+else
+    echo "Error: Not running in interactive terminal. Run manually: clone-repos"
+    exit 1
+fi
 
 if [ -z "$selection" ]; then
     echo "No repos selected."
@@ -54,13 +59,13 @@ else
             start=${BASH_REMATCH[1]}
             end=${BASH_REMATCH[2]}
             for ((j=start; j<=end; j++)); do
-                idx=$((j-1))
+                idx=$((j - 1))
                 if [ $idx -ge 0 ] && [ $idx -lt ${#repo_array[@]} ]; then
                     selected+=("${repo_array[$idx]}")
                 fi
             done
         elif [[ "$part" =~ ^[0-9]+$ ]]; then
-            idx=$((part-1))
+            idx=$((part - 1))
             if [ $idx -ge 0 ] && [ $idx -lt ${#repo_array[@]} ]; then
                 selected+=("${repo_array[$idx]}")
             fi
@@ -68,20 +73,33 @@ else
     done
 fi
 
+if [ ${#selected[@]} -eq 0 ]; then
+    echo "No valid repos selected."
+    exit 0
+fi
+
 # Clone selected repos
 echo ""
 echo "Cloning ${#selected[@]} repo(s) to $CLONE_DIR..."
 cd "$CLONE_DIR"
 
+failed=0
 for repo in "${selected[@]}"; do
     repo_name=$(basename "$repo")
     if [ -d "$repo_name" ]; then
         echo "Skipping $repo (already exists)"
     else
         echo "Cloning $repo..."
-        gh repo clone "$repo" -- --depth=1
+        if ! gh repo clone "$repo" -- --depth=1; then
+            echo "Warning: Failed to clone $repo"
+            failed=$((failed + 1))
+        fi
     fi
 done
 
 echo ""
-echo "Done! Repos cloned to $CLONE_DIR"
+if [ $failed -gt 0 ]; then
+    echo "Done with $failed error(s). Repos cloned to $CLONE_DIR"
+else
+    echo "Done! Repos cloned to $CLONE_DIR"
+fi
