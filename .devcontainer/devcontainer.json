@@ -30,6 +30,6 @@
       ]
     }
   },
-  "postCreateCommand": "echo 'Ultimate Dev Container Ready!' && gh --version && claude --version && docker --version && node --version && python --version && op --version",
+  "postCreateCommand": "sudo mkdir -p /workspaces/projects && sudo chown devuser:devuser /workspaces/projects && echo 'Ultimate Dev Container Ready!' && gh --version && claude --version && docker --version && node --version && python --version && op --version",
   "postStartCommand": "setup-ssh || true"
 }
