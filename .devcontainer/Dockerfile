@@ -89,10 +89,8 @@ RUN EXISTING_GROUP=$(getent group $USER_GID | cut -d: -f1) \
 USER $USERNAME
 WORKDIR /home/$USERNAME
 
-# Set up directories for 1Password agent, credentials, and Claude
-RUN mkdir -p ~/.ssh ~/.1password ~/.aws ~/.config/gcloud ~/.azure ~/.config/gh ~/.docker ~/.npm ~/.config/op ~/.claude ~/.local/bin \
-    && printf 'Host *\n    IdentityAgent ~/.1password/agent.sock\n' > ~/.ssh/config \
-    && chmod 600 ~/.ssh/config \
+# Set up directories for credentials and Claude
+RUN mkdir -p ~/.ssh ~/.aws ~/.config/gcloud ~/.azure ~/.config/gh ~/.docker ~/.npm ~/.config/op ~/.claude ~/.local/bin \
     && chmod 700 ~/.ssh ~/.config/op
 
 # Install Claude Code CLI as devuser (installs to ~/.local/bin)

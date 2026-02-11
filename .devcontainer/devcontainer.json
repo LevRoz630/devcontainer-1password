@@ -12,7 +12,6 @@
     "initializeCommand": "mkdir -p ~/.config/op && chmod 700 ~/.config/op",
   "mounts": [
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
-    "source=${localEnv:HOME}/.gitconfig,target=/home/devuser/.gitconfig,type=bind,readonly",
     "source=${localEnv:HOME}/.claude,target=/home/devuser/.claude,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.config/op,target=/home/devuser/.config/op,type=bind"
   ],
@@ -30,6 +29,6 @@
       ]
     }
   },
-  "postCreateCommand": "sudo mkdir -p /workspaces/projects && sudo chown devuser:devuser /workspaces/projects && echo 'Ultimate Dev Container Ready!' && gh --version && claude --version && docker --version && node --version && python --version && op --version",
-  "postStartCommand": "setup-ssh || true"
+  "postCreateCommand": "sudo mkdir -p /workspaces/projects && sudo chown devuser:devuser /workspaces/projects && git config --global --unset-all 'url.git@github.com:.insteadof' 2>/dev/null; echo 'Ultimate Dev Container Ready!' && gh --version && claude --version && docker --version && node --version && python --version && op --version",
+  "postStartCommand": "git config --global --unset-all 'url.git@github.com:.insteadof' 2>/dev/null; setup-ssh || true; gh auth setup-git 2>/dev/null || true"
 }

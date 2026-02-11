@@ -109,7 +109,6 @@ Interactive selector shows your GitHub repos sorted by recent activity.
 
 | Host Path | Container Path | Purpose |
 |-----------|----------------|---------|
-| `~/.gitconfig` | `/home/devuser/.gitconfig` | Git identity (read-only) |
 | `~/.claude/` | `/home/devuser/.claude/` | Claude Code settings |
 | `~/.config/op/` | `/home/devuser/.config/op/` | 1Password account config (persists across rebuilds) |
 | `/var/run/docker.sock` | `/var/run/docker.sock` | Docker-in-Docker |

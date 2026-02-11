@@ -16,9 +16,6 @@ services:
       # Mount Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
 
-      # Git config (small, non-sensitive)
-      - ${HOME}/.gitconfig:/home/devuser/.gitconfig:ro
-
       # Claude Code config and credentials
       - ${HOME}/.claude:/home/devuser/.claude:cached
 
